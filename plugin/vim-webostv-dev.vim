@@ -58,4 +58,25 @@ let g:meta_layer_commit_msg_templates="MODULE_NAM=MODULE_VERSION\n
 \"
 inoremap <leader>mc <esc>gg^i<C-R>=strftime(meta_layer_commit_msg_templates)<CR><esc>ggk^i<CR>
 nnoremap <leader>mc gg^i<C-R>=strftime(meta_layer_commit_msg_templates)<CR><esc>ggk^i<CR>
+let g:jenkins_script_commit_msg_templates="jenkins-job.sh: CHANGE_SUBJECT (vX.X.X)\n
+\\n
+\:Release Notes:\n
+\#Write a release note\n
+\\n
+\:Detailed Notes:\n
+\#Write detailed notes\n
+\\n
+\:Testing Performed:\n
+\#Write detailed test results\n
+\\n
+\:QA Notes:\n
+\#QA Notes\n
+\\n
+\:Issues Addressed:\n
+\[ISSUEKEY-123] Change issue's key and subject\n
+\#Write a list of issues registered on a issue tracking system\n
+\\n\n
+\"
+inoremap <leader>jc <esc>gg^i<C-R>=strftime(jenkins_script_commit_msg_templates)<CR><esc>ggk^i<CR>
+nnoremap <leader>jc gg^i<C-R>=strftime(jenkins_script_commit_msg_templates)<CR><esc>ggk^i<CR>
 " }}}
