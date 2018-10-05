@@ -9,8 +9,11 @@ augroup END
 
 let mapleader = ","
 let target_host = "wall.lge.com"
+let build_layer = "starfish/build-starfish"
 set iskeyword+=-
 set iskeyword+=/
+set iskeyword+=.
+set iskeyword+=@-@
 " LGE webOS TV developer configuration
 " Check if this file belongs to a git project {{{
 let gitdir = system("git rev-parse --git-dir| tr -d '\n'")
@@ -98,8 +101,8 @@ fun! CompleteProjects(findstart, base)
     let get_project_names_cmd = "ssh " . g:target_host . " gerrit ls-projects  -m " . @" . " > ${HOME}/repo_list.txt"
     let r = system(get_project_names_cmd)
 	  " ret r = 'starfish/build-starfish webos-pro/meta-lg-webos'
-    let hom_dir = system("echo $HOME|tr -d '\n'")
-    let r = readfile(hom_dir . '/repo_list.txt')
+    let home_dir = system("echo $HOME|tr -d '\n'")
+    let r = readfile(home_dir . '/repo_list.txt')
     " echom r[100]
     let prj_list = []
     let c = 1
@@ -121,4 +124,38 @@ fun! CompleteProjects(findstart, base)
 endfun
 inoremap <leader>project <esc>viwy:set completefunc=CompleteProjects<CR>Di<C-X><C-U>
 nnoremap <leader>project :set completefunc=CompleteProjects<CR>i<C-X><C-U>
+" }}}
+
+" Branch names autocompletion {{{
+fun! CompleteBranches(findstart, base)
+  if a:findstart
+	  " locate the start of the word
+	  let line = getline('.')
+	  let start = col('.') - 1
+	  while start > 0 && line[start - 1] =~ '\a'
+	    let start -= 1
+	  endwhile
+	  return start
+  else
+	  " find months matching with "a:base"
+    let get_branch_names_cmd = "ssh " . g:target_host . " gerrit  ls-user-refs --project " . g:build_layer . " -u gatekeeper.tvsw | fgrep " . @" . " | fgrep refs\/heads\/@ | sed  's/refs\\/heads\\///g' > ${HOME}/branches.txt"
+    echom get_branch_names_cmd
+    let r = system(get_branch_names_cmd)
+    let home_dir = system("echo $HOME|tr -d '\n'")
+    let r = readfile(home_dir . '/branches.txt')
+	  for m in r
+	    if m =~ '^' . a:base
+		    call complete_add(m)
+	    endif
+	    sleep 300m	" simulate searching for next match
+	    if complete_check()
+		    break
+	    endif
+	  endfor
+	  return []
+  endif
+endfun
+
+inoremap <leader>branch <esc>viwy:set completefunc=CompleteBranches<CR>Di<C-X><C-U>
+nnoremap <leader>branch :set completefunc=CompleteBranches<CR>i<C-X><C-U>
 " }}}
