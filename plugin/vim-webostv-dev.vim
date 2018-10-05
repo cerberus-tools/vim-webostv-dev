@@ -8,7 +8,9 @@ augroup END
 " }}}
 
 let mapleader = ","
-
+let target_host = "wall.lge.com"
+set iskeyword+=-
+set iskeyword+=/
 " LGE webOS TV developer configuration
 " Check if this file belongs to a git project {{{
 let gitdir = system("git rev-parse --git-dir| tr -d '\n'")
@@ -29,11 +31,11 @@ else
     let msg = "echo \"$(date | tr -d '\n') INFO: " . commit_msg_file . " file exists\" >> ${HOME}/.vim/log"
     echom(system(msg))
   elseif remote_push_url =~# ".*wall\.lge\.com.*"
-    let get_hook_cmd = "scp -p -P 29448 wall.lge.com:hooks/commit-msg " . gitdir . "/hooks/"
+    let get_hook_cmd = "scp -p -P 29448 " . target_host . ":hooks/commit-msg " . gitdir . "/hooks/"
     let r = system(get_hook_cmd)
     echom curr_date . " INFO: Download " . commit_msg_file . ": Complete"
   else
-    let msg = "echo \"$(date | tr -d '\n') INFO: This repository " . remote_push_url . " is not on wall.lge.com\" >> ${HOME}/.vim/log"
+    let msg = "echo \"$(date | tr -d '\n') INFO: This repository " . remote_push_url . " is not on " . target_host . "\" >> ${HOME}/.vim/log"
     echom(system(msg))
   endif
 endif
@@ -79,4 +81,44 @@ let g:jenkins_script_commit_msg_templates="jenkins-job.sh: CHANGE_SUBJECT (vX.X.
 \"
 inoremap <leader>jc <esc>gg^i<C-R>=strftime(jenkins_script_commit_msg_templates)<CR><esc>ggk^i<CR>
 nnoremap <leader>jc gg^i<C-R>=strftime(jenkins_script_commit_msg_templates)<CR><esc>ggk^i<CR>
+" }}}
+
+" Project name autocompletion {{{
+fun! CompleteProjects(findstart, base)
+  if a:findstart
+	  " locate the start of the word
+	  let line = getline('.')
+	  let start = col('.') - 1
+	  while start > 0 && line[start - 1] =~ '\a'
+	    let start -= 1
+	  endwhile
+	  return start
+  else
+	  " find months matching with "a:base"
+    let get_project_names_cmd = "ssh " . g:target_host . " gerrit ls-projects  -m " . @" . " > ${HOME}/repo_list.txt"
+    let r = system(get_project_names_cmd)
+	  " ret r = 'starfish/build-starfish webos-pro/meta-lg-webos'
+    let hom_dir = system("echo $HOME|tr -d '\n'")
+    let r = readfile(hom_dir . '/repo_list.txt')
+    " echom r[100]
+    let prj_list = []
+    let c = 1
+    "while c <= 10
+    "  call add(prj_list, r[c])
+    "  let c += 1
+    "endwhile
+	  for m in r
+	    if m =~ '^' . a:base
+		    call complete_add(m)
+	    endif
+	    sleep 300m	" simulate searching for next match
+	    if complete_check()
+		    break
+	    endif
+	  endfor
+	  return []
+  endif
+endfun
+inoremap <leader>project <esc>viwy:set completefunc=CompleteProjects<CR>Di<C-X><C-U>
+nnoremap <leader>project :set completefunc=CompleteProjects<CR>i<C-X><C-U>
 " }}}
