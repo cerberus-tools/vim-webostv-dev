@@ -1,0 +1,2 @@
+syntax keyword webosCMakeFunc webos_modules_init webos_component pkg_check_modules webos_add_compiler_flags webos_build_configured_file webos_build_system_bus_files 
+highlight link webosCMakeFunc PreProc
